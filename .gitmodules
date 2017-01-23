@@ -1,0 +1,3 @@
+[submodule "systemj"]
+	path = systemj
+	url = git@github.com:UoA-ECE-RP/systemj.git
