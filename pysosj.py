@@ -24,16 +24,17 @@ class _Handler(SocketServer.BaseRequestHandler):
         if not data[0] in self.server.data:
             self.server.data[data[0]] = _ChannelData()
         c = self.server.data[data[0]] 
-        c.r_s, c.r_r = data[1], data[2]
+        c.w_s, c.w_r = data[1], data[2]
         self.d = ""
 
-class SJInputChannel:
-    def __init__(self, ip, port):
-        self.ip = ip;
-        self.port = port;
+class SJChannel:
+    def __init__(self, iip, iport, oip, oport):
+        self.iip = iip;
+        self.iport = iport;
+        self.oip = oip;
+        self.oport = oport;
 
-    def start(self):
-        self.server = SocketServer.TCPServer((self.ip, self.port), _Handler)
+        self.server = SocketServer.TCPServer((iip, iport), _Handler)
         self.server.data = {}
         self.server_t = threading.Thread(target=self.server.serve_forever)
         self.server_t.daemon = True
@@ -43,6 +44,17 @@ class SJInputChannel:
         self.server_t.shutdown()
         self.server_t.server_close()
 
-    def send(self, data):
-        pass
+    def receive(self,name):
+        d = self.server.data;
+        while not name in d:
+            pass
+        c = d[name]
+        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client.connect((self.oip, self.oport))
+        client.sendall(++c.r_s)
+        client.close()
+        while c.w_s != c.r_s:
+            pass
+        print 123
+
     
