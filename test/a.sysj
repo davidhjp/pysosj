@@ -1,0 +1,21 @@
+CD(output String channel I;)->{
+	String signal S;
+	signal done;
+	{
+		while(true){
+			emit S("okay");
+			await(done);
+			emit S("ha");
+			await(done);
+		}
+	}
+	||
+	{
+		while(true){
+			await(S);
+			send I(#S);
+			emit done;
+		}
+	}
+	halt;
+}

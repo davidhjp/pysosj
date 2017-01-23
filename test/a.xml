@@ -1,0 +1,17 @@
+<System>
+	<Interconnection>
+		<Link Type="Destination">
+			<Interface SubSystem="SS1" Class="systemj.desktop.TCPIPInterface" Args="127.0.0.1:1100" Interface=""/>
+			<Interface SubSystem="SS2" Class="systemj.desktop.TCPIPInterface" Args="127.0.0.1:1200" Interface=""/>
+		</Link>
+	</Interconnection>
+	<SubSystem Name="SS1" Local="true">
+		<ClockDomain Name="CD" Class="CD">
+			<oChannel Name="I" To="CD2.I" />
+		</ClockDomain>
+	</SubSystem>
+	<SubSystem Name="SS2" >
+		<ClockDomain Name="CD2" Class="CD">
+		</ClockDomain>
+	</SubSystem>
+</System>

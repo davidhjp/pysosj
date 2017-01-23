@@ -1,3 +1,6 @@
 [submodule "systemj"]
 	path = systemj
 	url = git@github.com:UoA-ECE-RP/systemj.git
+[submodule "systemjrte"]
+	path = systemjrte
+	url = git@github.com:UoA-ECE-RP/systemjrte.git
