@@ -60,7 +60,7 @@ public class TCPIPInterface extends GenericInterface implements Runnable {
 			// Uses simple object output stream. no hassle.
 			DataOutputStream out = new DataOutputStream(client.getOutputStream());
 			String d = gson.toJson(buffer);
-			System.out.println("sedning "+d);
+			// System.out.println("sedning "+d);
 			byte[] b = d.getBytes();
 			out.write(b,0,b.length);
 			client.close();
@@ -102,7 +102,7 @@ public class TCPIPInterface extends GenericInterface implements Runnable {
 				if(ja.size() == 5)
 					o[4] = (Object)ja.get(4).getAsString();
 			
-				System.out.println("received "+Arrays.toString(o));
+				// System.out.println("received "+Arrays.toString(o));
 				super.forwardChannelData(o);
 				// socket.setSoLinger(true, 0);
 				socket.close();

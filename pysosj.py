@@ -37,7 +37,7 @@ class _Handler(SocketServer.BaseRequestHandler):
             elif data[0].endswith("_o"):
                 c.r_s, c.r_r, c.r_pre = data[1], data[2], data[3]
                 if c.w_pre < c.r_pre:
-                    c.w_pre, c.r_s, c.w_r = c.r_pre, 0, 0
+                    c.w_pre, c.w_s, c.w_r = c.r_pre, c.r_s, c.r_r
         self.d = ""
 
 class SJChannel:
@@ -124,9 +124,9 @@ class SJChannel:
             with c.lock:
                 if c.w_r < c.r_r:
                     c.w_r = c.r_r
-                    self._sendStream(self.oip, self.oport, [partner, c.w_s, c.w_r, c.w_pre])
+                    self._sendStream(self.oip, self.oport, [partner, c.w_s, c.w_r, c.w_pre, value])
                     break
-            self._sendStream(self.oip, self.oport, [partner, c.w_s, c.w_r, c.w_pre])
+            self._sendStream(self.oip, self.oport, [partner, c.w_s, c.w_r, c.w_pre, value])
             time.sleep(_TIME_STEP)
             if(time.time() - start > self.TIME_OUT):
                 return False

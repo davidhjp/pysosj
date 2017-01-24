@@ -3,9 +3,9 @@ CD(output String channel I; input String channel I2;)->{
 	signal done;
 	{
 		while(true){
-//                         emit S("okay");
+			emit S("okay");
 			await(done);
-//                         emit S("ha");
+			emit S("ha");
 			await(done);
 		}
 	}
@@ -13,7 +13,7 @@ CD(output String channel I; input String channel I2;)->{
 	{
 		while(true){
 			await(S);
-//                         send I(#S);
+			send I(#S);
 			emit done;
 		}
 	}
