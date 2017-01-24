@@ -8,10 +8,11 @@
 	<SubSystem Name="SS1" Local="true">
 		<ClockDomain Name="CD" Class="CD">
 			<oChannel Name="I" To="CD2.I" />
+			<iChannel Name="I2" From="CD2.I2" />
 		</ClockDomain>
 	</SubSystem>
 	<SubSystem Name="SS2" >
-		<ClockDomain Name="CD2" Class="CD">
+		<ClockDomain Name="CD2" Class="CD2">
 		</ClockDomain>
 	</SubSystem>
 </System>

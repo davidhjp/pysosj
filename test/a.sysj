@@ -1,11 +1,11 @@
-CD(output String channel I;)->{
+CD(output String channel I; input String channel I2;)->{
 	String signal S;
 	signal done;
 	{
 		while(true){
-			emit S("okay");
+//                         emit S("okay");
 			await(done);
-			emit S("ha");
+//                         emit S("ha");
 			await(done);
 		}
 	}
@@ -13,9 +13,16 @@ CD(output String channel I;)->{
 	{
 		while(true){
 			await(S);
-			send I(#S);
+//                         send I(#S);
 			emit done;
 		}
 	}
-	halt;
+	||
+	{
+		while(true){
+			receive I2;
+			System.out.println("Received "+#I2);
+			pause;
+		}
+	}
 }

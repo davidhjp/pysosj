@@ -60,12 +60,13 @@ public class TCPIPInterface extends GenericInterface implements Runnable {
 			// Uses simple object output stream. no hassle.
 			DataOutputStream out = new DataOutputStream(client.getOutputStream());
 			String d = gson.toJson(buffer);
+			System.out.println("sedning "+d);
 			byte[] b = d.getBytes();
 			out.write(b,0,b.length);
 			client.close();
 		}
 		catch(java.net.ConnectException e){
-			System.out.println("Could not reach server "+ip+":"+port);
+			// System.out.println("Could not reach server "+ip+":"+port);
 			return false;
 		}
 		catch(Exception e){

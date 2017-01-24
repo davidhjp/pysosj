@@ -3,6 +3,7 @@ import SocketServer
 import json
 import socket
 import time
+import sys
 
 _TIME_STEP = 0.00001
 
@@ -13,6 +14,7 @@ class _ChannelData():
     w_r = 0
     r_pre = 0
     w_pre = 0
+    lock = threading.Lock()
 
 class _Handler(SocketServer.BaseRequestHandler):
     d = ""
@@ -27,10 +29,15 @@ class _Handler(SocketServer.BaseRequestHandler):
         if not data[0] in self.server.data:
             self.server.data[data[0]] = _ChannelData()
         c = self.server.data[data[0]] 
-        if data[0].endswith("_in"):
-            c.w_s, c.w_r, c.w_pre, c.val = data[1], data[2], data[3], data[4]
-        elif data[0].endswith("_o"):
-            c.r_s, c.r_r, c.r_pre = data[1], data[2], data[3]
+        with c.lock:
+            if data[0].endswith("_in"):
+                c.w_s, c.w_r, c.w_pre, c.val = data[1], data[2], data[3], data[4]
+                if c.r_pre < c.w_pre:
+                    c.r_pre, c.r_s, c.r_r = c.w_pre, 0, 0
+            elif data[0].endswith("_o"):
+                c.r_s, c.r_r, c.r_pre = data[1], data[2], data[3]
+                if c.w_pre < c.r_pre:
+                    c.w_pre, c.r_s, c.w_r = c.r_pre, 0, 0
         self.d = ""
 
 class SJChannel:
@@ -45,48 +52,84 @@ class SJChannel:
         self.server_t = threading.Thread(target=self.server.serve_forever)
         self.server_t.daemon = True
         self.server_t.start()
+        self.TIME_OUT = sys.maxint
 
     def close(self):
         self.server.shutdown()
         self.server.server_close()
 
+    def settimeout(self, s):
+        self.TIME_OUT = s
+
+    def _checkPartner(self,name,partner,d,start):
+        p = 0
+        while not name in d:
+            try:
+                if(time.time() - start > self.TIME_OUT):
+                    return None
+                client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                client.settimeout(0.1)
+                client.connect((self.oip, self.oport))
+            except socket.timeout:
+                client.close()
+                continue
+            except socket.error:
+                client.close()
+                continue
+            tosend = json.dumps([partner, 0, 0, p]);
+            client.sendall(tosend)
+            client.close()
+            time.sleep(_TIME_STEP)
+            p += 1
+        return True
+
+    def _sendStream(self,ip,port,l):
+        tosend = json.dumps(l);
+        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client.connect((ip, port))
+        client.sendall(tosend)
+        client.close()
+
     def receive(self,name,partner):
+        start = time.time()
         name += "_in"
         partner += "_o"
         d = self.server.data
-        if not name in d:
-            while 1:
-                try:
-                    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    client.settimeout(0.1)
-                    client.connect((self.oip, self.oport))
-                except socket.timeout:
-                    client.close()
-                    continue
-                tosend = json.dumps([partner, 0, 0, 0]);
-                client.sendall(tosend)
-                client.close()
-                break
-            while not name in d:
-                pass
-        print 2
+        if not self._checkPartner(name,partner,d,start):
+            return None
         c = d[name]
-        if c.r_pre != c.w_pre:
-            c.r_pre = c.w_pre
-        print 3
-        while c.r_s == c.w_s:
-             time.sleep(_TIME_STEP)
-        print 4
-        c.r_s = c.w_s
-        c.r_r += 1
-        tosend = json.dumps([partner, c.r_s, c.r_r, c.r_pre]);
-
-        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client.connect((self.oip, self.oport))
-        client.sendall(tosend)
-        client.close()
+        while True:
+            with c.lock:
+                if c.r_s < c.w_s:
+                    c.r_s = c.w_s
+                    c.r_r += 1
+                    break
+            time.sleep(_TIME_STEP)
+            if(time.time() - start > self.TIME_OUT):
+                return None
+        self._sendStream(self.oip, self.oport, [partner, c.r_s, c.r_r, c.r_pre])
         return c.val
 
     def send(self,name,partner,value):
-        pass
+        start = time.time()
+        name += "_o"
+        partner += "_in"
+        d = self.server.data
+        if not self._checkPartner(name,partner,d,start):
+            return False
+        c = d[name]
+        with c.lock:
+            c.w_s += 1
+        while True:
+            with c.lock:
+                if c.w_r < c.r_r:
+                    c.w_r = c.r_r
+                    self._sendStream(self.oip, self.oport, [partner, c.w_s, c.w_r, c.w_pre])
+                    break
+            self._sendStream(self.oip, self.oport, [partner, c.w_s, c.w_r, c.w_pre])
+            time.sleep(_TIME_STEP)
+            if(time.time() - start > self.TIME_OUT):
+                return False
+        return True
+        
     
