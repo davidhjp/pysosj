@@ -3,7 +3,7 @@ A Python library for communicating with SOSJ CDs via channels
 
 This python library can be used to exchange String data between SOSJ and a Python program. 
 
-To run the test program (`test/a.sysj`) build everything using `make`. It is a simple clock-domain that receives and sends data continuously to the python program `main.py`:
+To run the test program (`test/a.sysj`) build everything using `make` followed by `make run`. `test/a.sysj` is a simple clock-domain that receives and sends data continuously to the python program `main.py`:
 
 ```java
 // test/a.sysj file
